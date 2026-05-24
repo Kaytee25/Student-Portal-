@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NUST Student Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="description" content="NUST student portal dashboard mockup">
+</head>
+<body>
+  <section id="loginView" class="login-screen">
+    <header class="login-banner">
+      <img class="login-banner-logo" src="logo_nust_png.png" alt="NUST crest">
+      <div class="login-banner-title">NATIONAL UNIVERSITY OF SCIENCE AND TECHNOLOGY</div>
+    </header>
+
+    <main class="hero">
+      <div class="split left-panel">
+        <img class="logo-blur" src="logo_nust_png.png" alt="NUST crest">
+      </div>
+      <div class="split right-panel"></div>
+
+      <div class="login-card">
+        <h2>STUDENTS PORTAL</h2>
+        <form id="loginForm" onsubmit="handleSubmit(event)">
+          <label class="sr-only" for="student">Student Number</label>
+          <input id="student" name="student" placeholder="Student Number" autocomplete="username" />
+
+          <label class="sr-only" for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" />
+
+          <button class="btn-primary" type="submit">LOG IN</button>
+        </form>
+      </div>
+    </main>
+  </section>
+
+  <section id="dashboardView" class="dashboard-view is-hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-button" type="button" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="topbar-title">NUST STUDENT PORTAL</div>
+      </div>
+      <div class="topbar-right">
+        <button class="mail-button" type="button" aria-label="Messages">
+          <span class="mail-symbol">✉</span>
+          <span class="badge">0</span>
+        </button>
+        <button class="logout-button" type="button" onclick="showLogin()">Logout</button>
+      </div>
+    </header>
+
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <div class="profile-card">
+          <img src="logo_nust_png.png" alt="NUST crest" class="profile-logo" />
+          <div class="profile-name">Keith Mutabvuri</div>
+        </div>
+
+        <nav class="side-nav" aria-label="Student navigation">
+          <a class="side-link active" href="#dashboard">My Portal Dashboard</a>
+          <a class="side-link" href="#registration">New Registration</a>
+          <a class="side-link" href="#payments">Payments History</a>
+          <a class="side-link" href="#results">Examinations Results</a>
+          <a class="side-link" href="#assessment">Continuous Assessment</a>
+          <a class="side-link" href="#timetable">Exams Timetable</a>
+          <a class="side-link" href="#elearning">NUST E-Learning</a>
+          <a class="side-link" href="#website">Main Website</a>
+        </nav>
+      </aside>
+
+      <main class="dashboard" id="dashboard">
+        <section class="quick-actions">
+          <article class="action-card green">
+            <div class="action-icon">▣</div>
+            <h2>GET FEES QUOTE</h2>
+            <p>Get your fees invoice.</p>
+          </article>
+          <article class="action-card blue">
+            <div class="action-icon">▥</div>
+            <h2>PAY TUITION FEES</h2>
+            <p>Pay instantly with Ecocash.</p>
+          </article>
+          <article class="action-card red">
+            <div class="action-icon">▤</div>
+            <h2>PAY ONLINE</h2>
+            <p>Secure Payments With FBC</p>
+          </article>
+          <article class="action-card orange">
+            <div class="action-icon">◉</div>
+            <h2>ENQUIRIES</h2>
+            <p>We are here to serve you</p>
+          </article>
+          <article class="action-card teal">
+            <div class="action-icon">▣</div>
+            <h2>NUST CALENDAR APP</h2>
+            <p>Download Android APK</p>
+          </article>
+        </section>
+
+        <section class="notice-banner">
+          <strong>ARE YOU A REGISTERED STUDENT?</strong> TO START THE REGISTRATION PROCESS PLEASE CLICK HERE.
+        </section>
+
+        <section class="content-grid">
+          <article class="panel personal-panel">
+            <div class="panel-header">PERSONAL DETAILS</div>
+            <div class="personal-body">
+              <img src="logo_nust_png.png" alt="Student crest" class="detail-logo" />
+              <div class="personal-copy">
+                <h3>Keith Tawananyasha Mutabvuri</h3>
+                <p class="id-line">ID Number: 58-2029825N66</p>
+                <p>Victoria Range</p>
+                <p>Masvingo</p>
+                <p>Zimbabwe</p>
+                <p>Phone Number: 263772817794</p>
+                <p>Gender: Male</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel courses-panel">
+            <div class="panel-header">CURRENTLY REGISTERED COURSES</div>
+            <table class="course-table">
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>SCS2104</td><td>Structured Systems Analysis and Design</td><td>CORE</td></tr>
+                <tr><td>SCS2108</td><td>Object Oriented Software Concepts and Development</td><td>CORE</td></tr>
+                <tr><td>SCS2110</td><td>Research Methods</td><td>CORE</td></tr>
+                <tr><td>SCS2111</td><td>Data Communications and Computer Networks</td><td>CORE</td></tr>
+              </tbody>
+            </table>
+            <div class="info-callout success">It is the responsibility of the student to make sure that the courses above are correct.</div>
+          </article>
+
+          <article class="panel academic-panel">
+            <div class="panel-header">ACADEMIC DETAILS</div>
+            <table class="detail-table">
+              <tr><td>Student Number:</td><td>N02530153A</td></tr>
+              <tr><td>Programme:</td><td>SCS</td></tr>
+              <tr><td>Registration Status:</td><td class="warn">REGISTERED</td></tr>
+              <tr><td>CERTIFICATE AND TRANSCRIPT CLEARED:</td><td>No</td></tr>
+              <tr><td>Current Academic Year:</td><td>2026</td></tr>
+              <tr><td>Current Part:</td><td>2</td></tr>
+              <tr><td>Current Semester:</td><td>1</td></tr>
+            </table>
+          </article>
+
+          <article class="panel financial-panel">
+            <div class="panel-header">FINANCIAL DETAILS</div>
+            <table class="detail-table">
+              <tr><td>Overall Fees Balance:</td><td>349.73</td></tr>
+              <tr><td>Payment Plan:</td><td>You are not on Payment Plan!</td></tr>
+              <tr><td>Library Fines:</td><td></td></tr>
+              <tr><td>Items Owed At The Library:</td><td></td></tr>
+            </table>
+            <div class="info-callout danger">Students are advised to clear their fees before the start of exams.</div>
+          </article>
+        </section>
+
+        <section class="utility-strip">
+          <div class="utility-card"><span>Students Webm</span></div>
+          <div class="utility-card"><span>Google Classr</span></div>
+          <div class="utility-card"><span>E-Resources</span></div>
+        </section>
+
+        <section class="info-grid">
+          <article class="mini-panel">
+            <div class="mini-header dark">Point Of Sale Service</div>
+            <p>NUST is now accepting fees payments by swiping via the Point of Sale platform at the Bursar Banking Hall and Harare Office. Bank cards that are accepted are all local ZimSwitch cards, all MasterCards and Visa cards. Students can also pay online via Ecocash, Telecash, Visa or Mastercard.</p>
+          </article>
+
+          <article class="mini-panel">
+            <div class="mini-header pink">Reminder On Registration</div>
+            <p>Please note that students who are not registered will not be allowed to access University facilities. Therefore, students are urged to regularise their registration status to avoid inconveniences.</p>
+          </article>
+
+          <article class="mini-panel">
+            <div class="mini-header green">How To Register</div>
+            <ol>
+              <li>Open the NUST website http://www.nust.ac.zw</li>
+              <li>Click on Student Portal</li>
+              <li>Enter your login credentials</li>
+              <li>After logging on, click on New Registration</li>
+              <li>Verify the Semester and Courses and click submit</li>
+            </ol>
+          </article>
+
+          <article class="mini-panel">
+            <div class="mini-header blue">USSD Payment</div>
+            <p>Good News! For your added convenience, you can now pay your NUST fees using USSD code, *151*2*3*9*2#</p>
+          </article>
+        </section>
+
+        <footer class="footer-bar">© 2026 National University of Science & Technology : "Think In Other Terms"</footer>
+      </main>
+    </div>
+  </section>
+
+  <script>
+    const loginView = document.getElementById('loginView');
+    const dashboardView = document.getElementById('dashboardView');
+
+    function handleSubmit(e) {
+      e.preventDefault();
+
+      const student = document.getElementById('student').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (student === 'N02530153A' && password === 'nust1234') {
+        loginView.classList.add('is-hidden');
+        dashboardView.classList.remove('is-hidden');
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        return;
+      }
+
+      alert('Invalid student number or password. Use the demo credentials in this mockup.');
+    }
+
+    function showLogin() {
+      dashboardView.classList.add('is-hidden');
+      loginView.classList.remove('is-hidden');
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  </script>
+</body>
+</html>
