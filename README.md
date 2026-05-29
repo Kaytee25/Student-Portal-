@@ -1,16 +1,16 @@
 # NUST Student Portal
 
-This project is a front-end student portal mockup built with PHP, HTML, CSS, and JavaScript. It includes separate student and admin login flows, a student signup form, fee-based registration logic, results visibility rules, and basic admin tools for updating student records.
+This project is a PHP, HTML, CSS, and JavaScript student portal with a MySQL-backed data layer. It supports separate student and admin login flows, student signup, semester registration, fee tracking, assessment uploads, and results management.
 
 ## Features
 
-- Role-based login with separate Student and Admin access
-- Student signup with saved local account details
+- Role-based login for students and admins
+- Database-backed student signup and authentication
 - New semester registration with a 50% fee threshold
 - Examination results locked until full fees are paid
-- Continuous assessment and fee update forms for the admin portal
-- Registration, payments, results, and assessment views in the student dashboard
-- Client-side persistence using `localStorage`
+- Admin forms for fees, continuous assessment, and results updates
+- Student dashboard sections for registration, payments, results, and assessment
+- MySQL persistence through a small PHP JSON API
 
 ## Demo Credentials
 
@@ -27,24 +27,35 @@ Admin:
 ## Requirements
 
 - XAMPP or another local PHP server
+- MySQL or MariaDB
 - A browser with JavaScript enabled
 
 ## How To Run
 
 1. Place the project folder inside your web server root, for example `c:\xampp\htdocs\student_portal_project`.
-2. Start Apache in XAMPP.
+2. Start Apache and MySQL in XAMPP.
 3. Open the portal in your browser at:
 
-	`http://localhost/student_portal_project/index.php`
+   `http://localhost/student_portal_project/index.php`
+
+The first request will create the `student_portal_project` database and seed a demo student and admin account if they do not already exist.
+
+## Database
+
+- Database name: `student_portal_project`
+- Student records are stored in the `students` table
+- Admin accounts are stored in the `admins` table
+- The API endpoint used by the browser is `api.php`
 
 ## Project Files
 
-- `index.php` - main application shell and all portal logic
+- `index.php` - main application shell and portal UI
+- `api.php` - JSON API for login and student data synchronization
+- `db.php` - PDO connection, schema setup, and seed helpers
 - `styles.css` - portal layout and styling
 - `README.md` - project overview and usage notes
 
 ## Notes
 
-- Student data is stored in the browser using `localStorage`.
-- The portal is a mockup and does not use a database or backend authentication.
+- The portal now reads initial student data from MySQL instead of `localStorage`.
 - If the page looks blank in a browser, make sure you open it through `http://localhost/...` rather than opening the PHP file directly.

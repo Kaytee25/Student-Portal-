@@ -1,3 +1,9 @@
+<?php
+require_once __DIR__ . '/db.php';
+$portalBootstrap = [
+  'students' => portal_bootstrap_students(portal_connection()),
+];
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,6 +12,9 @@
   <title>NUST Student Portal</title>
   <link rel="stylesheet" href="styles.css">
   <meta name="description" content="NUST student portal dashboard mockup">
+  <script>
+    window.__PORTAL_BOOTSTRAP__ = <?= json_encode($portalBootstrap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+  </script>
 </head>
 <body>
   <section id="loginView" class="login-screen">
@@ -142,6 +151,16 @@
                   <input id="registrationAcademicYear" type="text" placeholder="2026" required />
                 </label>
                 <label>
+                  <span>Part</span>
+                  <select id="registrationPart" required>
+                    <option value="1">Part 1</option>
+                    <option value="2">Part 2</option>
+                    <option value="3">Part 3</option>
+                    <option value="4">Part 4</option>
+                    <option value="5">Part 5</option>
+                  </select>
+                </label>
+                <label>
                   <span>Semester</span>
                   <select id="registrationSemester" required>
                     <option value="1">Semester 1</option>
@@ -203,9 +222,9 @@
         </section>
 
         <section class="utility-strip">
-          <a class="utility-card" href="https://mail.google.com/" target="_blank" rel="noopener noreferrer"><span>Students Webmail</span></a>
-          <a class="utility-card" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"><span>Google Classroom</span></a>
-          <a class="utility-card" href="https://www.nust.ac.zw/" target="_blank" rel="noopener noreferrer"><span>E-Resources</span></a>
+          <a class="utility-card" href="https://mail.google.com/" target="_blank" rel="noopener noreferrer"><span class="utility-icon utility-icon-webmail" aria-hidden="true"></span><span>Students Webmail</span></a>
+          <a class="utility-card" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"><span class="utility-icon utility-icon-classroom" aria-hidden="true"></span><span>Google Classroom</span></a>
+          <a class="utility-card" href="https://www.nust.ac.zw/" target="_blank" rel="noopener noreferrer"><span class="utility-icon utility-icon-resources" aria-hidden="true"></span><span>E-Resources</span></a>
         </section>
 
         <section class="info-grid">
@@ -410,7 +429,14 @@
                 <select id="feesStudentSelect"></select>
               </label>
               <label>
-                <span>Amount Paid (USD)</span>
+                <span>Currency</span>
+                <select id="feesCurrency">
+                  <option value="USD">USD</option>
+                  <option value="ZIG">ZIG</option>
+                </select>
+              </label>
+              <label>
+                <span>Amount Paid</span>
                 <input id="feesAmount" type="number" min="0.01" step="0.01" placeholder="150.00" required />
               </label>
               <label>
@@ -532,8 +558,7 @@
 
     const TOTAL_FEES = 745;
     const REGISTRATION_THRESHOLD = TOTAL_FEES / 2;
-    const STORAGE_KEYS = { students: 'nustPortalStudents' };
-    const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
+    const PORTAL_API = 'api.php';
 
     const loginView = document.getElementById('loginView');
     const dashboardView = document.getElementById('dashboardView');
@@ -571,6 +596,7 @@
     const registrationStudentNumber = document.getElementById('registrationStudentNumber');
     const registrationFeesPaid = document.getElementById('registrationFeesPaid');
     const registrationAcademicYear = document.getElementById('registrationAcademicYear');
+    const registrationPart = document.getElementById('registrationPart');
     const registrationSemester = document.getElementById('registrationSemester');
     const registrationCourseList = document.getElementById('registrationCourseList');
     const registrationSubmitBtn = document.getElementById('registrationSubmitBtn');
@@ -587,6 +613,7 @@
     const adminClearedCount = document.getElementById('adminClearedCount');
     const adminPendingCount = document.getElementById('adminPendingCount');
     const feesStudentSelect = document.getElementById('feesStudentSelect');
+    const feesCurrency = document.getElementById('feesCurrency');
     const feesAmount = document.getElementById('feesAmount');
     const feesReference = document.getElementById('feesReference');
     const assessmentStudentSelect = document.getElementById('assessmentStudentSelect');
@@ -612,6 +639,7 @@
     const feesForm = document.getElementById('feesForm');
     const assessmentForm = document.getElementById('assessmentForm');
     const resultsForm = document.getElementById('resultsForm');
+    let studentsCache = [];
 
     const actionConfigs = {
       ecocash: {
@@ -689,14 +717,133 @@
       }
     };
 
-    const registrationCourseCatalog = [
-      { courseCode: 'SCS2201', courseName: 'Advanced Programming Concepts', type: 'CORE' },
-      { courseCode: 'SCS2202', courseName: 'Systems Analysis and Design II', type: 'CORE' },
-      { courseCode: 'SCS2203', courseName: 'Software Project Management', type: 'CORE' },
-      { courseCode: 'SCS2204', courseName: 'Human Computer Interaction', type: 'CORE' },
-      { courseCode: 'SCS2205', courseName: 'Internet Programming', type: 'CORE' },
-      { courseCode: 'SCS2206', courseName: 'Computer Networks II', type: 'CORE' }
-    ];
+    const registrationCourseCatalog = {
+      '1-1': [
+        { courseCode: 'SCS1101', courseName: 'Introduction to Computer Programming', type: 'CORE' },
+        { courseCode: 'SCS1102', courseName: 'Computer Mathematics I', type: 'CORE' },
+        { courseCode: 'SCS1103', courseName: 'Computer Literacy and Productivity', type: 'CORE' },
+        { courseCode: 'SCS1104', courseName: 'Introduction to Information Systems', type: 'CORE' },
+        { courseCode: 'SCS1105', courseName: 'Communication Skills for Computing', type: 'CORE' },
+        { courseCode: 'SCS1106', courseName: 'Digital Logic Fundamentals', type: 'CORE' }
+      ],
+      '1-2': [
+        { courseCode: 'SCS1201', courseName: 'Object Oriented Programming I', type: 'CORE' },
+        { courseCode: 'SCS1202', courseName: 'Discrete Mathematics', type: 'CORE' },
+        { courseCode: 'SCS1203', courseName: 'Web Design Fundamentals', type: 'CORE' },
+        { courseCode: 'SCS1204', courseName: 'Database Fundamentals', type: 'CORE' },
+        { courseCode: 'SCS1205', courseName: 'Systems Analysis Basics', type: 'CORE' },
+        { courseCode: 'SCS1206', courseName: 'Computer Networking Basics', type: 'CORE' }
+      ],
+      '2-1': [
+        { courseCode: 'SCS2101', courseName: 'Data Structures', type: 'CORE' },
+        { courseCode: 'SCS2102', courseName: 'Algorithms and Complexity', type: 'CORE' },
+        { courseCode: 'SCS2103', courseName: 'Operating Systems Concepts', type: 'CORE' },
+        { courseCode: 'SCS2104', courseName: 'Software Engineering Principles', type: 'CORE' },
+        { courseCode: 'SCS2105', courseName: 'Probability and Statistics', type: 'CORE' },
+        { courseCode: 'SCS2106', courseName: 'Computer Architecture', type: 'CORE' }
+      ],
+      '2-2': [
+        { courseCode: 'SCS2201', courseName: 'Advanced Programming Concepts', type: 'CORE' },
+        { courseCode: 'SCS2202', courseName: 'Systems Analysis and Design II', type: 'CORE' },
+        { courseCode: 'SCS2203', courseName: 'Software Project Management', type: 'CORE' },
+        { courseCode: 'SCS2204', courseName: 'Human Computer Interaction', type: 'CORE' },
+        { courseCode: 'SCS2205', courseName: 'Internet Programming', type: 'CORE' },
+        { courseCode: 'SCS2206', courseName: 'Computer Networks II', type: 'CORE' }
+      ],
+      '3-1': [
+        { courseCode: 'SCS3101', courseName: 'Advanced Java Programming', type: 'CORE' },
+        { courseCode: 'SCS3102', courseName: 'Software Testing and Quality Assurance', type: 'CORE' },
+        { courseCode: 'SCS3103', courseName: 'Mobile Application Development', type: 'CORE' },
+        { courseCode: 'SCS3104', courseName: 'Distributed Systems', type: 'CORE' },
+        { courseCode: 'SCS3105', courseName: 'Artificial Intelligence Fundamentals', type: 'CORE' },
+        { courseCode: 'SCS3106', courseName: 'Research Methods I', type: 'CORE' }
+      ],
+      '3-2': [
+        { courseCode: 'SCS3201', courseName: 'Cloud Computing', type: 'CORE' },
+        { courseCode: 'SCS3202', courseName: 'Cyber Security Principles', type: 'CORE' },
+        { courseCode: 'SCS3203', courseName: 'Compiler Construction', type: 'CORE' },
+        { courseCode: 'SCS3204', courseName: 'Human Computer Interaction II', type: 'CORE' },
+        { courseCode: 'SCS3205', courseName: 'Data Mining and Warehousing', type: 'CORE' },
+        { courseCode: 'SCS3206', courseName: 'Project Development I', type: 'CORE' }
+      ],
+      '4-1': [
+        { courseCode: 'SCS4101', courseName: 'Enterprise Systems', type: 'CORE' },
+        { courseCode: 'SCS4102', courseName: 'DevOps and CI/CD', type: 'CORE' },
+        { courseCode: 'SCS4103', courseName: 'Machine Learning Applications', type: 'CORE' },
+        { courseCode: 'SCS4104', courseName: 'Information Security Management', type: 'CORE' },
+        { courseCode: 'SCS4105', courseName: 'Advanced Computer Networks', type: 'CORE' },
+        { courseCode: 'SCS4106', courseName: 'Research Methods II', type: 'CORE' }
+      ],
+      '4-2': [
+        { courseCode: 'SCS4201', courseName: 'Big Data Analytics', type: 'CORE' },
+        { courseCode: 'SCS4202', courseName: 'Distributed Database Systems', type: 'CORE' },
+        { courseCode: 'SCS4203', courseName: 'UX Design and Evaluation', type: 'CORE' },
+        { courseCode: 'SCS4204', courseName: 'Blockchain Technologies', type: 'CORE' },
+        { courseCode: 'SCS4205', courseName: 'Project Development II', type: 'CORE' },
+        { courseCode: 'SCS4206', courseName: 'Industrial Attachment Preparation', type: 'CORE' }
+      ],
+      '5-1': [
+        { courseCode: 'SCS5101', courseName: 'Software Architecture', type: 'CORE' },
+        { courseCode: 'SCS5102', courseName: 'Advanced Artificial Intelligence', type: 'CORE' },
+        { courseCode: 'SCS5103', courseName: 'Professional Practice and Ethics', type: 'CORE' },
+        { courseCode: 'SCS5104', courseName: 'Entrepreneurship for Technologists', type: 'CORE' },
+        { courseCode: 'SCS5105', courseName: 'Innovation and Product Design', type: 'CORE' },
+        { courseCode: 'SCS5106', courseName: 'Research Proposal Development', type: 'CORE' }
+      ],
+      '5-2': [
+        { courseCode: 'SCS5201', courseName: 'Capstone Project', type: 'CORE' },
+        { courseCode: 'SCS5202', courseName: 'Emerging Technologies', type: 'CORE' },
+        { courseCode: 'SCS5203', courseName: 'Advanced Quality Assurance', type: 'CORE' },
+        { courseCode: 'SCS5204', courseName: 'Innovation Management', type: 'CORE' },
+        { courseCode: 'SCS5205', courseName: 'Research Seminar', type: 'CORE' },
+        { courseCode: 'SCS5206', courseName: 'Thesis Presentation', type: 'CORE' }
+      ]
+    };
+
+    function getRegistrationCatalog(part, semester) {
+      const key = `${String(part || '1').trim()}-${String(semester || '1').trim()}`;
+      return registrationCourseCatalog[key] || registrationCourseCatalog['1-1'];
+    }
+
+    function renderRegistrationCourseOptions(student, preserveSelection = false) {
+      if (!registrationSection || !registrationForm || !registrationCourseList) return;
+
+      const status = getStudentStatus(student);
+      if (!preserveSelection) {
+        registrationPart.value = student?.currentPart || '1';
+        registrationSemester.value = student?.currentSemester === '1' ? '2' : '1';
+      }
+
+      const selectedPart = registrationPart?.value || student?.currentPart || '1';
+      const selectedSemester = registrationSemester?.value || student?.currentSemester || '1';
+      const selectedCatalog = getRegistrationCatalog(selectedPart, selectedSemester);
+
+      registrationStudentNumber.textContent = student?.studentNumber || '-';
+      registrationFeesPaid.textContent = `USD ${formatMoney(status.feesPaid)}`;
+
+      if (status.canRegister) {
+        registrationNotice.innerHTML = `<strong>Registration open.</strong> Part ${escapeHtml(selectedPart)} Semester ${escapeHtml(selectedSemester)} is ready. Select the courses you want to take.`;
+        registrationCourseList.innerHTML = selectedCatalog.map(course => `
+          <label class="registration-course-option">
+            <input type="checkbox" name="courses" value="${escapeHtml(course.courseCode)}" checked />
+            <span>
+              <strong>${escapeHtml(course.courseCode)}</strong>
+              <small>${escapeHtml(course.courseName)}</small>
+            </span>
+          </label>
+        `).join('');
+        registrationForm.querySelectorAll('input, select, button').forEach(control => {
+          control.disabled = false;
+        });
+        registrationSubmitBtn.textContent = 'Register Semester';
+      } else {
+        registrationNotice.innerHTML = `<strong>Registration locked.</strong> You need at least USD ${formatMoney(REGISTRATION_THRESHOLD)} paid before registering a new semester.`;
+        registrationCourseList.innerHTML = '<div class="registration-locked">Course registration will appear after the 50% payment threshold is reached.</div>';
+        registrationForm.querySelectorAll('input, select, button').forEach(control => {
+          control.disabled = true;
+        });
+      }
+    }
 
     const defaultStudent = {
       studentNumber: 'N02529721P',
@@ -770,6 +917,10 @@
       createdAt: '2026-05-29'
     };
 
+    studentsCache = Array.isArray(window.__PORTAL_BOOTSTRAP__?.students) && window.__PORTAL_BOOTSTRAP__.students.length
+      ? window.__PORTAL_BOOTSTRAP__.students.map(normalizeStudent)
+      : [normalizeStudent(defaultStudent)];
+
     let currentRole = 'student';
     let currentStudent = null;
 
@@ -825,6 +976,7 @@
         itemsOwed: String(student.itemsOwed || ''),
         registrationHistory: Array.isArray(student.registrationHistory) ? student.registrationHistory.map(entry => ({
           academicYear: String(entry.academicYear || '').trim(),
+          part: String(entry.part || '').trim(),
           semester: String(entry.semester || '').trim(),
           registeredAt: String(entry.registeredAt || '').trim(),
           courses: Array.isArray(entry.courses) ? entry.courses.map(course => ({
@@ -877,26 +1029,20 @@
     }
 
     function getStoredStudents() {
-      const seed = [normalizeStudent(defaultStudent)];
-      try {
-        const raw = localStorage.getItem(STORAGE_KEYS.students);
-        if (!raw) return seed;
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return seed;
-        const normalized = parsed.map(normalizeStudent);
-        seed.forEach(student => {
-          if (!normalized.some(item => item.studentNumber === student.studentNumber)) {
-            normalized.unshift(student);
-          }
-        });
-        return normalized;
-      } catch {
-        return seed;
+      if (Array.isArray(studentsCache) && studentsCache.length) {
+        return studentsCache.map(normalizeStudent);
       }
+      return [normalizeStudent(defaultStudent)];
     }
 
     function saveStudents(students) {
-      localStorage.setItem(STORAGE_KEYS.students, JSON.stringify(students.map(normalizeStudent)));
+      const payload = students.map(normalizeStudent);
+      studentsCache = payload;
+      fetch(`${PORTAL_API}?action=syncStudents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students: payload })
+      }).catch(() => {});
     }
 
     function getStudents() {
@@ -916,7 +1062,7 @@
 
     function getStudentStatus(student) {
       const feesPaid = Number(student.feesPaid || 0);
-      const balance = Math.max(0, TOTAL_FEES - feesPaid);
+      const balance = TOTAL_FEES - feesPaid;
       return {
         feesPaid,
         balance,
@@ -1036,37 +1182,11 @@
       renderRegistrationSection(student);
     }
 
-    function renderRegistrationSection(student) {
+    function renderRegistrationSection(student, preserveSelection = false) {
       if (!registrationSection || !registrationForm || !registrationCourseList) return;
 
-      const status = getStudentStatus(student);
-      registrationStudentNumber.textContent = student?.studentNumber || '-';
-      registrationFeesPaid.textContent = `USD ${formatMoney(status.feesPaid)}`;
       registrationAcademicYear.value = student?.currentAcademicYear || '2026';
-      registrationSemester.value = student?.currentSemester === '1' ? '2' : '1';
-
-      if (status.canRegister) {
-        registrationNotice.innerHTML = '<strong>Registration open.</strong> Select the semester and courses you want to take.';
-        registrationCourseList.innerHTML = registrationCourseCatalog.map(course => `
-          <label class="registration-course-option">
-            <input type="checkbox" name="courses" value="${escapeHtml(course.courseCode)}" checked />
-            <span>
-              <strong>${escapeHtml(course.courseCode)}</strong>
-              <small>${escapeHtml(course.courseName)}</small>
-            </span>
-          </label>
-        `).join('');
-        registrationForm.querySelectorAll('input, select, button').forEach(control => {
-          control.disabled = false;
-        });
-        registrationSubmitBtn.textContent = 'Register Semester';
-      } else {
-        registrationNotice.innerHTML = `<strong>Registration locked.</strong> You need at least USD ${formatMoney(REGISTRATION_THRESHOLD)} paid before registering a new semester.`;
-        registrationCourseList.innerHTML = '<div class="registration-locked">Course registration will appear after the 50% payment threshold is reached.</div>';
-        registrationForm.querySelectorAll('input, select, button').forEach(control => {
-          control.disabled = true;
-        });
-      }
+      renderRegistrationCourseOptions(student, preserveSelection);
     }
 
     function renderAdminPortal(students) {
@@ -1189,28 +1309,43 @@
       signupForm.reset();
     }
 
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
       event.preventDefault();
       const role = loginRole.value;
       const identifier = studentInput.value.trim();
       const password = passwordInput.value.trim();
 
-      if (role === 'admin') {
-        if (identifier.toLowerCase() === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+      try {
+        const response = await fetch(`${PORTAL_API}?action=login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role, identifier, password })
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          alert(result.message || `Invalid ${role} login credentials.`);
+          return;
+        }
+
+        if (result.role === 'admin') {
           showAdminPortal();
           return;
         }
-        alert('Invalid admin username or password.');
-        return;
-      }
 
-      const student = findStudent(identifier);
-      if (student && student.password === password) {
-        showStudentPortal(student);
-        return;
+        showStudentPortal(result.student || findStudent(identifier));
+      } catch (error) {
+        const student = findStudent(identifier);
+        if (role === 'admin') {
+          alert('Unable to reach the database for admin login.');
+          return;
+        }
+        if (student) {
+          showStudentPortal(student);
+          return;
+        }
+        alert('Unable to reach the database for student login.');
       }
-
-      alert('Invalid student number or password.');
     }
 
     function openActionModal(type) {
@@ -1414,37 +1549,45 @@
     function handleFeesSubmit(event) {
       event.preventDefault();
       const studentNumber = feesStudentSelect.value;
+      const currencyCode = String(feesCurrency?.value || 'USD').toUpperCase();
       const amount = Number(feesAmount.value);
       if (!studentNumber || !amount || amount <= 0) {
         alert('Select a student and enter a valid payment amount.');
         return;
       }
 
+      const exchangeRate = 35;
+      const usdEquivalent = currencyCode === 'ZIG' ? amount / exchangeRate : amount;
+      const recordedAmount = currencyCode === 'ZIG' ? amount : amount;
+
       const students = getStudents();
       const index = students.findIndex(student => student.studentNumber === studentNumber);
       if (index < 0) return;
 
       const updated = normalizeStudent(students[index]);
-      updated.feesPaid = Math.min(TOTAL_FEES, Number(updated.feesPaid || 0) + amount);
+      updated.feesPaid = Number(updated.feesPaid || 0) + usdEquivalent;
       updated.ledger = [{
         date: todayStamp(),
         type: 'PAYMENT',
         description: feesReference.value.trim() || 'Fees payment update',
-        currencyCode: 'USD',
-        amount: -amount,
-        usdEquivalent: -amount
+        currencyCode,
+        amount: -recordedAmount,
+        usdEquivalent: -usdEquivalent
       }, ...updated.ledger];
 
       students[index] = updated;
       setStudents(students);
       feesForm.reset();
+      if (feesCurrency) {
+        feesCurrency.value = 'USD';
+      }
       renderAdminPortal(students);
       if (currentRole === 'student' && currentStudent && currentStudent.studentNumber === updated.studentNumber) {
         currentStudent = updated;
         renderStudentProfile(updated);
       }
       enhanceAllTables();
-      alert(`Fees updated for ${updated.studentNumber}.`);
+      alert(`Fees updated for ${updated.studentNumber}. ${currencyCode === 'ZIG' ? `Converted at 35 ZIG = USD 1.00.` : ''}`.trim());
     }
 
     function handleRegistrationSubmit(event) {
@@ -1456,7 +1599,7 @@
       if (index < 0) return;
 
       const selectedCourses = Array.from(registrationCourseList.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(input => registrationCourseCatalog.find(course => course.courseCode === input.value))
+        .map(input => getRegistrationCatalog(registrationPart?.value, registrationSemester?.value).find(course => course.courseCode === input.value))
         .filter(Boolean)
         .map(course => ({ ...course }));
 
@@ -1467,11 +1610,13 @@
 
       const updated = normalizeStudent(students[index]);
       updated.currentAcademicYear = registrationAcademicYear.value.trim() || updated.currentAcademicYear;
+      updated.currentPart = registrationPart.value.trim() || updated.currentPart;
       updated.currentSemester = registrationSemester.value.trim() || updated.currentSemester;
       updated.courses = selectedCourses;
       updated.registrationHistory = Array.isArray(updated.registrationHistory) ? updated.registrationHistory : [];
       updated.registrationHistory.unshift({
         academicYear: updated.currentAcademicYear,
+        part: updated.currentPart,
         semester: updated.currentSemester,
         courses: selectedCourses,
         registeredAt: todayStamp()
@@ -1624,6 +1769,14 @@
       loginRole.addEventListener('change', syncLoginMode);
       syncLoginMode();
     }
+
+    registrationPart?.addEventListener('change', () => {
+      if (currentStudent) renderRegistrationSection(currentStudent, true);
+    });
+
+    registrationSemester?.addEventListener('change', () => {
+      if (currentStudent) renderRegistrationSection(currentStudent, true);
+    });
 
     openSignupBtn?.addEventListener('click', openSignupModal);
     closeSignupBtn?.addEventListener('click', closeSignupModal);
